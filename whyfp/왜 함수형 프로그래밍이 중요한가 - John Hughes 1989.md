@@ -1,6 +1,6 @@
 # 왜 함수형 프로그래밍이 중요한가
 
-(NOTE: Copyright belongs to The British Computer Society, who grant permission to copy for educational purposes only without fee provided the copies are not made for direct commercial advantage and this BCS copyright notice appears.)
+*(NOTE: Copyright belongs to The British Computer Society, who grant permission to copy for educational purposes only without fee provided the copies are not made for direct commercial advantage and this BCS copyright notice appears.)*
 
 John Hughes
 
@@ -8,20 +8,15 @@ The University, Glasgow
 
 **Abstract**
 
-    소프트웨어가 점점 더 복잡해지면서 구조를 잘 잡는 일이 더욱 중요해졌다. 잘 구조화된 소프트웨어는 작성하기 쉽고,
-    디버깅하기도 쉬우며, 나중에 재사용을 통해 프로그래밍 비용을 줄여줄 모듈들도 제공한다. 이 페이퍼에서 우리는 함수형
-    언어의 두 기능, 고차 함수(higher-order function)와 지연 연산(lazy evaluation)이 모듈화 수준을 매우
-    높여준다는 점을 보여주려 한다. 예제로서 리스트와 트리 자료 구조를 다루고, 몇가지 수치 알고리즘을 구현해보고,
-    알파-베타 휴리스틱(게임에 사용되는 인공지능의 한 알고리즘)을 구현해본다. 모듈화 수준이 성공적인 프로그래밍에 매우
-    중요하기 때문에 함수형 프로그래밍이 소프트웨어 개발에 있어서 중요한 이점을 제공한다는 얘기로 끝을 맺는다.
+소프트웨어가 점점 더 복잡해지면서 구조를 잘 잡는 일이 더욱 중요해졌다. 잘 구조화된 소프트웨어는 작성하기 쉽고, 디버깅하기도 쉬우며, 나중에 재사용을 통해 프로그래밍 비용을 줄여줄 모듈들도 제공한다. 이 페이퍼에서 우리는 함수형 언어의 두 기능, 고차 함수(higher-order function)와 지연 연산(lazy evaluation)이 모듈화 수준을 매우 높여준다는 점을 보여주려 한다. 예제로서 리스트와 트리 자료 구조를 다루고, 몇가지 수치 알고리즘을 구현해보고, 알파-베타 휴리스틱(게임에 사용되는 인공지능의 한 알고리즘)을 구현해본다. 모듈화 수준이 성공적인 프로그래밍에 매우 중요하기 때문에 함수형 프로그래밍이 소프트웨어 개발에 있어서 중요한 이점을 제공한다는 얘기로 끝을 맺는다.
 
 # 1 도입
 
 이 페이퍼는 (비 함수형) 프로그래머 커뮤니티에 함수형 프로그래밍의 중요성을 보여주고, 또 함수형 프로그래머들에게는 함수형 프로그래밍의 장점을 명확히 함으로써 그 장점을 충분히 활용할 수 있도록 돕기 위한 시도이다.
 
-함수형 프로그래밍을 함수형 프로그래밍이라 부르는 이유는 가장 기본적인 동작 방식이 함수를 인자에 적용(혹은 호출, application)하는 것이기 때문이다. 메인 프로그램은 그 자체로 인자를 입력(input)받아 결과를 출력(output)하는 함수로 작성된다. 메인 함수는 다른 함수들을 이용하여 정의되는 것이 일반적이며 그 함수들은 다시 더 많은 함수들로 정의된다. 이 모든 함수들은 수학에서 다루는 보통의 함수와 매우 비슷하다. 이 페이퍼에서 함수들은 보통의 등식 형태로 정의된다. 우리는 Turner의 언어, Miranda[4]를 이용하지만 Miranda를 몰라도 표기법을 이해하는데 어려움은 없을 것이다.
+함수형 프로그래밍을 함수형 프로그래밍이라 부르는 이유는 가장 기본적인 동작 방식이 함수를 인자에 적용(혹은 호출, application)하는 것이기 때문이다. 메인 프로그램은 그 자체로 인자를 입력(input)받아 결과를 출력(output)하는 함수로 작성된다. 메인 함수는 다른 함수들을 이용하여 정의되는 것이 일반적이며 그 함수들은 다시 더 많은 함수들로 정의된다. 이 모든 함수들은 수학에서 다루는 보통의 함수와 매우 비슷하다. 이 페이퍼에서 함수들은 보통의 등식 형태로 정의된다. 우리는 Turner의 언어, Miranda<a href="#ref4"><sup>4</sup></a>를 이용하지만 Miranda를 몰라도 표기법을 이해하는데 어려움은 없을 것이다.
 
-(NOTE:  Miranda is a trademark of Research Software Ltd.)
+*(NOTE:  **Miranda** is a trademark of Research Software Ltd.)*
 
 함수형 프로그래밍이 가지는 특장점은 대개 다음과 같이 요약된다. 함수형 프로그램은 대입문(assignment statement)이 없고, 그래서 변수는 한번 값이 지정되면 절대 변경되지 않는다. 더 일반적으로 보자면 함수형 프로그램은 부작용(side-effect)이 전혀 없다. 함수 호출은 결과 값을 계산하는 이상의 다른 효과(effect)를 가지지 않는다. 이로써 버그의 주요 원인이 사라지고, 실행의 순서가 중요하지 않게 된다–표현식(expression)의 값을 변경할 수 있는 부작용이 없기 때문에 표현식은 아무 때나 평가될 수 있다. 이는 다시 프로그래머로 하여금 제어 흐름을 지정해야 하는 짐을 덜어주다. 표현식이 아무 때나 평가될 수 있으므로 변수를 원래의 값으로 치환하거나 거꾸로 치환하는 것이 자유롭게 된다–즉 프로그램이 "참조 투명성(referential transparency)"을 가지게 된다. 이러한 자유로 인해 함수형 프로그램은 기존 방식의 프로그램에 비해 수학적으로 더 쉽게 추적할 수 있다.
 
@@ -41,7 +36,7 @@ The University, Glasgow
 
 `goto`가 없고 등등의 것들은 이런 장점과 연관 짓기 어렵다. 이런 것들은 "작은 단위의 프로그래밍"을 도와주지만 모듈화 설계는 "큰 단위의 프로그래밍"에 도움을 준다. 그래서 조금 더 수고를 들여야 하겠지만 누구든 FORTRAN이나 어셈블리 언어로도 구조적 프로그래밍의 이득을 얻을 수 있다.
 
-모듈화 설계가 성공적인 프로그래밍에 필수적이라는 점은 이제 일반적으로 인정되고 있으며, MODULA-II[6]와 Ada[5] 같은 최신 언어들은 특별히 모듈화 수준을 향상시키기 위한 기능들을 포함한다. 그런데 흔히 놓치는 매우 중요한 포인트가 있다. 어떤 문제를 해결하기 위해 모듈화된 프로그램을 작성할 때에는 먼저 문제를 작은 문제로 나누고, 그 작은 문제들을 해결한 다음 마지막으로 각 해결안들을 결합한다. 원래의 문제를 어떻게 나눌 것이냐 하는 것은 나중에 해결안들을 어떤 식으로 결합할 수 있느냐에 직접적으로 영향을 받는다. 따라서 문제를 모듈화 할 수 있는 수준을 높이려면 프로그래밍 언어 차원에서 새로운 형태의 접착제(glue)를 제공해야만 한다. 복잡한 스코프 규칙이나 분할 컴파일 방법 등은 저수준의 도움을 제공할 뿐이다–모듈화에 직접적으로 큰 기여를 하지 않는다.
+모듈화 설계가 성공적인 프로그래밍에 필수적이라는 점은 이제 일반적으로 인정되고 있으며, MODULA-II<a href="#ref6"><sup>6</sup></a>와 Ada<a href="#ref5"><sup>5</sup></a> 같은 최신 언어들은 특별히 모듈화 수준을 향상시키기 위한 기능들을 포함한다. 그런데 흔히 놓치는 매우 중요한 포인트가 있다. 어떤 문제를 해결하기 위해 모듈화된 프로그램을 작성할 때에는 먼저 문제를 작은 문제로 나누고, 그 작은 문제들을 해결한 다음 마지막으로 각 해결안들을 결합한다. 원래의 문제를 어떻게 나눌 것이냐 하는 것은 나중에 해결안들을 어떤 식으로 결합할 수 있느냐에 직접적으로 영향을 받는다. 따라서 문제를 모듈화 할 수 있는 수준을 높이려면 프로그래밍 언어 차원에서 새로운 형태의 접착제(glue)를 제공해야만 한다. 복잡한 스코프 규칙이나 분할 컴파일 방법 등은 저수준의 도움을 제공할 뿐이다–모듈화에 직접적으로 큰 기여를 하지 않는다.
 
 이제부터 우리는 함수형 언어가 제공하는 두 가지 새로운, 그리고 매우 중요한 접착제를 설명하겠다. 몇 가지 예제 프로그램을 통해 새로운 방식으로 모듈화 함으로써 더 단순해질 수 있음을 보여줄 것이다. 함수형 프로그래밍이 가지는 힘의 핵심은 모듈화를 향상시킨다는 점이다. 더 작고, 더 간단하고, 더 범용적인 모듈들을 새로운 형태의 접착제로 결합하는 것, 이것은 함수형 프로그래머들이 얻고자 노력해야 하는 목표이기도 하다.
 
@@ -49,55 +44,73 @@ The University, Glasgow
 
 두 종류의 새로운 접착제 중에서 먼저 다룰 것은 간단한 함수들을 서로 결합하여 더 복잡한 함수들을 만들 수 있게 해준다. 간단한 리스트를 다루는 문제를 가지고 설명하겠다. 리스트에 새로운 요소를 하나 추가하는 문제이다. 우리는 먼저 아래와 같이 리스트를 정의할 수 있다.
 
-(NOTE:  Miranda에서 리스트는 빌트인 생성자인 `(:)`를 이용하여 정의될 수도 있다. 하지만 여기서 사용하는 표기법과 동등하다.)
+*(NOTE:  Miranda에서 리스트는 빌트인 생성자인 `(:)`를 이용하여 정의될 수도 있다. 하지만 여기서 사용하는 표기법과 동등하다.)*
 
-    listof * ::= Nil | Cons * (listof *)
+```
+listof * ::= Nil | Cons * (listof *)
+```
 
 `*`의 리스트(`*`는 무엇이든 가능)는 `Nil`(빈 리스트)이거나 `*` 하나와 또 다른 `*`의 리스트로 만들어진 `Cons`라는 의미이다. 하나의 `Cons`는 첫 번째 요소가 `*` 이고 두 번째 이후의 요소들이 또 다른 \* 의 리스트의 요소들과 같은 리스트를 표현한다. 여기서 \* 는 어떤 타입이든 가능하다–예를 들어, \* 가 "정수"라면 정수 리스트를 비어 있거나 혹은 정수 하나와 또 다른 정수 리스트로 만들어진 `Cons`로 정의된다는 의미이다. 일반적 관례에 따라 앞으로 리스트를 표시할 때 `Cons`와 `Nil`을 사용하는 대신 요소들을 `[ ]`로 감싸는 형식으로 표시할 것이다. 이는 표기법에 있어서의 편의를 위한 것일 뿐이다. 예를 들어,
 
-    `[ ]`는       `Nil`을 의미한다.
-    `[1]`는       `Cons 1 Nil`을 의미한다.
-    `[1, 2, 3]`는 `Cons 1 (Cons 2 (Cons 3 Nil))`을 의미한다.
+- `[ ]`는       `Nil`을 의미한다.
+- `[1]`는       `Cons 1 Nil`을 의미한다.
+- `[1, 2, 3]`는 `Cons 1 (Cons 2 (Cons 3 Nil))`을 의미한다.
 
 리스트의 요소들은 재귀 함수 `sum`을 이용하여 모두 더할 수 있다. `sum` 함수는 두 종류의 인자에 대해 정의되어야 한다. 하나는 빈 리스트(`Nil`), 다른 하나는 `Cons`에 대해서이다. 리스트가 비었을 때 그 합은 0이므로 우리는 다음처럼 정의한다.
 
-    sum Nil = 0
+```
+sum Nil = 0
+```
 
 그리고 `Cons`의 합은 첫 번째 요소를 다른 리스트의 합에 더하는 방법으로 계산할 수 있다. 따라서 아래처럼 정의한다.
 
-    sum (Cons n list) = n + sum list
+```
+sum (Cons n list) = n + sum list
+```
 
 이 정의를 살펴보면 합을 계산하는 문제에 국한된 것은 네모로 표시한 부분 뿐이라는 것을 알 수 있다.
 
-              +---+
-    sum Nil = | 0 |
-              +---+
-                          +---+
-    sum (Cons n list) = n | + | sum list
-                          +---+
+```
+          +---+
+sum Nil = | 0 |
+          +---+
+                      +---+
+sum (Cons n list) = n | + | sum list
+                      +---+
+```
 
 리스트 요소들의 합을 계산하는 것이 범용적인 재귀 패턴과 네모 표시 부분을 접착하는 방법으로 모듈화 가능하다는 것을 의미한다. 이러한 재귀 패턴은 일반적으로 `foldr`이라고 부르며 이제 `sum`은 다음처럼 표현될 수 있다.
 
-    sum = foldr (+) 0
+```
+sum = foldr (+) 0
+```
 
 `sum`의 정의를 파라미터화하면 `foldr`의 정의를 유도할 수 있다.
 
-    (foldr f x) Nil = x
-    (foldr f x) (Cons a l) = f a ((foldr f x) l)
+```
+(foldr f x) Nil = x
+(foldr f x) (Cons a l) = f a ((foldr f x) l)
+```
 
 `(foldr f x)`에 괄호를 치긴 했지만 이는 `sum`의 정의에서 바꿔치기 한 것을 분명히 드러내기 위한 것이다. 보통은 괄호를 생략하여 `((foldr f x) l)`을 `(foldr f x l)`로 쓸 수 있다. `foldr`처럼 인자가 세 개 인 함수에 인자를 두 개만 적용하면 그 결과는 남은 인자 하나를 취하는 함수가 되며, 보다 일반적으로 말해서, 인자가 `n` 개인 함수에 `n`보다 작은 `m` 개의 인자만 적용되었을 때 이는 다시 `n - m` 개의 남은 인자를 취하는 함수가 된다.
 
 `sum`을 이렇게 모듈화하고 나면 우리는 그 부품들을 재사용함으로써 이득을 취할 수 있다. 여기서 가장 흥미로운 부품은 `foldr`이다. `foldr`을 재사용하면 추가적인 프로그래밍 노력을 들이지 않고 리스트의 모든 요소들을 곱하는 함수를 작성할 수 있다.
 
-    product = foldr (*) 1
+```
+product = foldr (*) 1
+```
 
 불(bool) 값의 리스트에서 참 값이 있는지 확인할 때에도 사용할 수 있다.
 
-    anytrue = foldr (⋁) False
+```
+anytrue = foldr (⋁) False
+```
 
 혹은 모두 참인지 확인할 수도 있다.
 
-    alltrue = foldr (⋀) True
+```
+alltrue = foldr (⋀) True
+```
 
 `(foldr f a)`는 리스트를 구성하는 모든 `Cons`를 `f`로, `Nil`을 `a`로 바꿔치우는 함수로 이해할 수도 있다. `[1, 2, 3]` 리스트를 예로 들자면, 이는 원래 다음과 같으며
 
@@ -113,63 +126,87 @@ The University, Glasgow
 
 이제 `(foldr Cons Nil)`이 리스트를 단순히 복사할 뿐이라는 것을 쉽게 알 수 있다. 어떤 리스트를 다른 리스트에 이어 붙이려면 뒤쪽 리스트의 앞 부분에 요소들을 `Cons`하여 붙이면 되므로 다음을 쉽게 알 수 있다.
 
-    append a b = foldr Cons b a
+```
+append a b = foldr Cons b a
+```
 
 예를 들어,
 
-    append [1, 2] [3, 4] = foldr Cons [3, 4] [1, 2]
-                         = foldr Cons [3, 4] (Cons 1 (Cons 2 Nil))
-                         = Cons 1 (Cons 2 [3, 4]))
-                              (replacing `Cons` by `Cons` and `Nil` by [3, 4])
-                         = [1, 2, 3, 4]
+```
+append [1, 2] [3, 4] = foldr Cons [3, 4] [1, 2]
+                     = foldr Cons [3, 4] (Cons 1 (Cons 2 Nil))
+                     = Cons 1 (Cons 2 [3, 4]))
+                          (replacing `Cons` by `Cons` and `Nil` by [3, 4])
+                     = [1, 2, 3, 4]
+```
 
 리스트 요소들의 갯수를 세는 함수 `length`는 다음처럼 정의된다.
 
-    length = foldr count 0
-    count a n = n + 1
+```
+length = foldr count 0
+count a n = n + 1
+```
 
 `count`를 이용하여 `Cons` 갯수만큼 0에서 1씩 증가한다. 리스트의 모든 요소들에 2를 곱하는 함수는 다음처럼 작성할 수 있다.
 
-    doubleall = foldr doubleandcons Nil
-    doubleandcons n list = Cons (2 * n) list
+```
+doubleall = foldr doubleandcons Nil
+doubleandcons n list = Cons (2 * n) list
+```
 
 `doubleandcons`는 더 모듈화할 수 있다.
 
-    doubleandcons= fandcons double
-    double n = 2 * n
-    fandcons f el list = Cons (f el) list
+```
+doubleandcons= fandcons double
+double n = 2 * n
+fandcons f el list = Cons (f el) list
+```
 
 그리고 다시 다음처럼 고쳐 쓸 수 있다.
 
-    fandcons f = Cons . f
+```
+fandcons f = Cons . f
+```
 
 여기서 `.`(함수 합성 표준 연산자)는 다음처럼 정의되어 있다.
 
-    (f . g) h = f (g h)
+```
+(f . g) h = f (g h)
+```
 
 `fandcons`의 새로운 정의에 인자를 적용해보면 올바르다는 것을 알 수 있다.
 
-    fandcons f el = (Cons . f) el
-                  = Cons (f el)
+```
+fandcons f el = (Cons . f) el
+              = Cons (f el)
+```
 
 이므로 다음처럼 된다.
 
-    fandcons f el list = Cons (f el) list
+```
+fandcons f el list = Cons (f el) list
+```
 
 최종 버전은 다음과 같다.
 
-    doubleall = foldr (Cons . double) Nil
+```
+doubleall = foldr (Cons . double) Nil
+```
 
 추가적인 모듈화를 통해 다음을 얻을 수 있다.
 
-    doubleall = map double
-    map f = foldr (Cons . f) Nil
+```
+doubleall = map double
+map f = foldr (Cons . f) Nil
+```
 
 여기서 `map`이라는 일반화된 유용한 함수는 리스트의 모든 요소들에 함수 `f`를 적용한다.
 
 행렬을 리스트의 리스트로 표현하면 행렬의 모든 요소들을 합하는 함수도 작성할 수 있다.
 
-    summatrix = sum . map sum
+```
+summatrix = sum . map sum
+```
 
 `map sum` 함수는 `sum`이용하여 모든 행(row)을 합하고, 다시 맨 왼쪽의 `sum`이 행 별 합을 합하여 전체 행렬의 합을 구한다.
 
@@ -177,19 +214,13 @@ The University, Glasgow
 
 리스트 처리 함수에서 멈출 필요가 없다. 또 다른 예제로서 트리 자료형을 고려해보자. 트리 자료형은 다음처럼 정의된다.
 
-    treeof * ::= Node * (listof (treeof *))
+```
+treeof * ::= Node * (listof (treeof *))
+```
 
 이 정의에 따르면, `*`의 트리는 노드이며, 노드는 `*`를 레이블로 가지고 다시 하위 트리를 `*` 트리의 리스트로 가진다. 예를 들어 다음의 트리를 보자.
 
-            1 o
-            ／ ＼
-          ／     ＼
-        ／         ＼
-     2 o             o 3
-                     |
-                     |
-                     |
-                     o  4
+![예제 트리](tree.svg?raw=true)
 
 이 트리는 다음과 같이 표현된다.
 
@@ -646,9 +677,9 @@ The University, Glasgow
 
 이 페이퍼에서 우리는 모듈화 수준이 성공적인 프로그래밍의 핵심이라는 점을 다뤘다. 생산성 향상을 꾀하는 언어는 프로그램의 모듈화를 잘 지원해야만 한다. 하지만 스코프 규칙이나 분할 컴파일 만으로는 충분하지 않다–모듈화 수준은 모듈 그 자체보다 더 큰 의미를 가진다. 문제를 부분으로 나눌 수 있는 수준은 부분 해결안들을 다시 결합할 수 있는 수준에 달려있다. 모듈화 프로그래밍을 지원하기 위하여 언어는 좋은 접착제를 제공해야만 한다. 함수형 프로그래밍 언어는 두 가지 새로운 접착제–고차 함수와 지연 연산–를 제공한다. 이러한 접착제를 이용하면 프로그램을 새롭고 유용한 방식으로 모듈화할 수 있으며, 우리는 그러한 예제를 여럿 살펴봤다. 더 작고, 더 일반적인 모듈은 보다 폭넓게 재사용될 수 있어서 프로그래밍을 점점 쉽게 만든다. 이것이 바로 기존 방식의 프로그램에 비하여 함수형 프로그램이 훨씬 작고 작성하기도 쉬운 이유이다. 이는 함수형 프로그래머들이 지향해야 할 목표이기도 하다. 프로그램의 어떤 부분이 지저분하고 복잡하다면 프로그래머는 그것을 모듈로 나누고 부분들을 일반화하려 노력해야 한다. 이를 위한 도구로서 고차 함수와 지연 연산의 사용을 고려해야 할 것이다.
 
-고차 함수와 지연 연산의 힘과 우아함을 우리가 처음 이야기하는 것이 아니다. Turner는 화학적 구조를 생성하는 프로그램에서 이 둘을 이용하여 큰 효과를 보았다[3]. Abelson과 Sussman은 스트림(stream, 지연 리스트)이 프로그램 구조화의 강력한 도구임을 강조했다[1]. Henderson은 함수형 운영체제의 구조를 설계하면서 스트림을 사용했다[2]. 하지만 우리는 다른 이들에 비해 함수형 프로그램의 모듈화 가능성을 더 강조한다.
+고차 함수와 지연 연산의 힘과 우아함을 우리가 처음 이야기하는 것이 아니다. Turner는 화학적 구조를 생성하는 프로그램에서 이 둘을 이용하여 큰 효과를 보았다<a href="#ref3"><sup>3</sup></a>. Abelson과 Sussman은 스트림(stream, 지연 리스트)이 프로그램 구조화의 강력한 도구임을 강조했다<a href="#ref1"><sup>1</sup></a>. Henderson은 함수형 운영체제의 구조를 설계하면서 스트림을 사용했다<a href="#ref2"><sup>2</sup></a>. 하지만 우리는 다른 이들에 비해 함수형 프로그램의 모듈화 가능성을 더 강조한다.
 
-또한 이 페이퍼는 지연 연산을 두고 벌어지는 지금의 논쟁들과도 관련이 있다. 함수형 언어는 지연 연산이 기본이어야 한다고 믿는 이들이 있고, 그렇지 않은 이들도 있다. 타협점으로서 특별 문법을 통해 지연 리스트를 제공하기도 한다(예를 들어 SCHEME[1]). 이 페이퍼는, 지연 연산이 이등시민의 지위를 가지기엔  너무나 중요하다라는 추가적인 근거들을 제시한다. 지연 연산은 아마도 함수형 프로그래머가 가진 가장 강력한 접착제일 것이다. 이 필수적인 도구를 사용하지 못하게 막아선 안된다.
+또한 이 페이퍼는 지연 연산을 두고 벌어지는 지금의 논쟁들과도 관련이 있다. 함수형 언어는 지연 연산이 기본이어야 한다고 믿는 이들이 있고, 그렇지 않은 이들도 있다. 타협점으로서 특별 문법을 통해 지연 리스트를 제공하기도 한다(예를 들어 SCHEME<a href="#ref1"><sup>1</sup></a>). 이 페이퍼는, 지연 연산이 이등시민의 지위를 가지기엔  너무나 중요하다라는 추가적인 근거들을 제시한다. 지연 연산은 아마도 함수형 프로그래머가 가진 가장 강력한 접착제일 것이다. 이 필수적인 도구를 사용하지 못하게 막아선 안된다.
 
 # 감사
 
@@ -656,14 +687,14 @@ The University, Glasgow
 
 # 참고문헌
 
-[1] Abelson, H. and Susman, G. J. *The Stucture and Interpretation of Computer Programs*. MIT Press, Cambridge, Mass., 1984.
+<sup name="ref">1</sup> Abelson, H. and Susman, G. J. *The Stucture and Interpretation of Computer Programs*. MIT Press, Cambridge, Mass., 1984.
 
-[2] Henderson, P. "Purely functional operating systems". In *Functional Programming and its Applications*. Cambridge University Press, Cambridge, 1982.
+<sup name="ref2">2</sup> Henderson, P. "Purely functional operating systems". In *Functional Programming and its Applications*. Cambridge University Press, Cambridge, 1982.
 
-[3] Turner, D. A. "The semantic elegance of applicative languages". In *ACM Symposium on Functional Languages and Computer Architecture* (Wentworth, N.H.). ACM, New York, 1981.
+<sup name="ref3">3</sup> Turner, D. A. "The semantic elegance of applicative languages". In *ACM Symposium on Functional Languages and Computer Architecture* (Wentworth, N.H.). ACM, New York, 1981.
 
-[4] Turner, D. A. "An Overview of Miranda". *SIGPLAN Notices*, December 1986 (Miranda에 대한 페이퍼들은 [http://miranda.org.uk](http://miranda.org.uk) 에 있다).
+<sup name="ref4">4</sup> Turner, D. A. "An Overview of Miranda". *SIGPLAN Notices*, December 1986 (Miranda에 대한 페이퍼들은 [http://miranda.org.uk](http://miranda.org.uk) 에 있다).
 
-[5] United States Department of Defense. *The Programming Language Ada Reference Manual*. Springer-Verlag, Berlin, 1980.
+<sup name="ref5">5</sup> United States Department of Defense. *The Programming Language Ada Reference Manual*. Springer-Verlag, Berlin, 1980.
 
-[6] Wirth, N. *Programming in Modula-II*. Springer-Verlag, Berlin, 1982.
+<sup name="ref6">6</sup> Wirth, N. *Programming in Modula-II*. Springer-Verlag, Berlin, 1982.
