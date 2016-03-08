@@ -33,4 +33,54 @@ turn p = if no == nx then X else O
 
 gametree p = reptree moves p
 
+static :: Position -> Int
+static position 
+    | win X position = 1
+    | win O position = -1
+    | otherwise = 0
+
+win :: Cell -> Position -> Bool
+win player position = any (all (== player)) $ allLines position
+
+allLines [a,b,c,d,e,f,g,h,i] = [[a,b,c],[d,e,f],[g,h,i]
+                               ,[a,d,g],[b,e,h],[c,f,i]
+                               ,[a,e,i],[c,e,g]]
+maximize = maximum . maximize' 
+
+maximize' (Node x []) = [x]
+maximize' (Node x sub) = mapmin (map minimize' sub)
+
+mapmin :: [[Int]] -> [Int]
+mapmin (nums:rest) = minimum nums : omit (minimum nums) rest
+
+omit pot [] = []
+omit pot (nums:rest) 
+    | minleq nums pot = omit pot rest
+    | otherwise = minimum nums : omit (minimum nums) rest
+
+minleq [] pot = False
+minleq (n:rest) pot 
+    | n <= pot = True
+    | otherwise = minleq rest pot
+
+minimize = minimum . minimize' 
+
+minimize' (Node x [])  = [x]
+minimize' (Node x sub) = map maximize sub
+
+evaluate :: Position -> Int
+evaluate = maximum . maximize' . maptree static . prune 8 . gametree
+-- evaluate = maximize . maptree static . prune 5 . gametree
+--evaluate = maximize . maptree static . gametree
+
+
+prune 0 (Node x sub) = Node x []
+prune n (Node x sub) = Node x (map (prune (n-1)) sub)
+
+
+
+
+
+
+
 
